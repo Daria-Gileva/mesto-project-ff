@@ -1,36 +1,10 @@
 import "../pages/index.css";
 import * as card from "../scripts/card.js";
-import * as cards from "../scripts/cards.js";
 import * as modal from "../scripts/modal.js";
+import * as validation from "../scripts/validation.js";
+import * as api from "../scripts/api.js";
 
-const addIconImage = new URL("../images/add-icon.svg", import.meta.url);
-const avatarImage = new URL("../images/avatar.jpg", import.meta.url);
-const cardFirstImage = new URL("../images/card_1.jpg", import.meta.url);
-const cardSecondImage = new URL("../images/card_2.jpg", import.meta.url);
-const cardThirdImage = new URL("../images/card_3.jpg", import.meta.url);
-const closeImage = new URL("../images/close.svg", import.meta.url);
-const deleteIconImage = new URL("../images/delete-icon.svg", import.meta.url);
-const editIconImage = new URL("../images/edit-icon.svg", import.meta.url);
-const likeActivImage = new URL("../images/like-active.svg", import.meta.url);
-const likeInActivImage = new URL(
-  "../images/like-inactive.svg",
-  import.meta.url
-);
-const logoImage = new URL("../images/logo.svg", import.meta.url);
-
-const whoIsTheGoat = [
-  { name: "add-icon", link: addIconImage },
-  { name: "avatar", link: avatarImage },
-  { name: "card_1", link: cardFirstImage },
-  { name: "card_2", link: cardSecondImage },
-  { name: "card_3", link: cardThirdImage },
-  { name: "close", link: closeImage },
-  { name: "delete-icon", link: deleteIconImage },
-  { name: "edit-icon", link: editIconImage },
-  { name: "like-active", link: likeActivImage },
-  { name: "like-inactive", link: likeInActivImage },
-  { name: "logo", link: logoImage },
-];
+// ------------------------------------------- constants -----------------------------------------
 
 const cardTemplate = document.querySelector("#card-template").content;
 const cardLists = document.querySelector(".places__list");
@@ -39,47 +13,29 @@ const profileAddButton = document.querySelector(".profile__add-button");
 const newCardPopup = document.querySelector(".popup_type_new-card");
 
 const profileEditButton = document.querySelector(".profile__edit-button");
-const popupEditProfile = document.querySelector(".popup_type_edit");
+const profileEditPopup = document.querySelector(".popup_type_edit");
+const profileTitle = document.querySelector(".profile__title");
+const profileDescription = document.querySelector(".profile__description");
+const profileLogo = document.querySelector(".profile__image");
 
 const popupTypeImage = document.querySelector(".popup_type_image");
 const nameInput = document.querySelector(".popup__input_type_name");
 const jobInput = document.querySelector(".popup__input_type_description");
-const profileTitle = document.querySelector(".profile__title");
-const profileDescription = document.querySelector(".profile__description");
 
 const popupImage = popupTypeImage.querySelector(".popup__image");
 const popupCaption = popupTypeImage.querySelector(".popup__caption");
 
 const formElementCard = newCardPopup.querySelector(".popup__form");
-formElementCard.addEventListener("submit", handleCardFormSubmit);
+const formElementProfile = profileEditPopup.querySelector(".popup__form");
 
-const formElementProfile = popupEditProfile.querySelector(".popup__form");
-formElementProfile.addEventListener("submit", handleProfileFormSubmit);
+// Переменная, хранящая обьект профиля
+let profileData;
 
-document.querySelector('[placeholder="Имя"]').placeholder =
-  profileTitle.textContent;
-document.querySelector('[placeholder="Занятие"]').placeholder =
-  profileDescription.textContent;
+// ------------------------------------------- functions -----------------------------------------
 
 function animateModal(popupObject) {
   popupObject.classList.add("popup_is-animated");
 }
-
-animateModal(newCardPopup);
-animateModal(popupEditProfile);
-animateModal(popupTypeImage);
-
-cards.initialCards.forEach((element) => {
-  cardLists.append(
-    card.createCard(
-      element,
-      cardTemplate,
-      card.likeCard,
-      card.deleteCard,
-      showImagePopup
-    )
-  );
-});
 
 function showImagePopup(element) {
   modal.openModal(popupTypeImage);
@@ -88,37 +44,46 @@ function showImagePopup(element) {
   popupCaption.textContent = element.name;
 }
 
-profileAddButton.addEventListener("click", () => {
-  modal.openModal(newCardPopup);
-});
-
-profileEditButton.addEventListener("click", () => {
-  modal.openModal(popupEditProfile);
-});
-
 function handleProfileFormSubmit(evt) {
   evt.preventDefault();
 
   profileTitle.textContent = nameInput.value;
   profileDescription.textContent = jobInput.value;
 
-  modal.closeModal(popupEditProfile);
+  const profileDataLocal = { name: nameInput.value, about: jobInput.value };
+  api.patchUserProfile(profileDataLocal).then((data) => {
+    modal.closeModal(profileEditPopup);
+    const form = newCardPopup.querySelector(
+      validation.validationConfig.formSelector
+    );
+    validation.clearValidation(form, validation.validationConfig);
+    profileData = data;
+  });
 }
 
 function handleCardFormSubmit(evt) {
-  cardLists.insertBefore(
-    card.createCard(
-      createNewCard(evt, newCardPopup),
-      cardTemplate,
-      card.likeCard,
-      card.deleteCard
-    ),
-    cardLists.firstChild
-  );
-  modal.closeModal(newCardPopup);
+  api.postCard(createNewCard(evt, newCardPopup)).then((cardData) => {
+    cardLists.insertBefore(
+      card.createCard(
+        cardData,
+        profileData,
+        cardTemplate,
+        card.likeCard,
+        card.deleteCard,
+        showImagePopup
+      ),
+      cardLists.firstChild
+    );
+    modal.closeModal(newCardPopup);
+    const form = newCardPopup.querySelector(
+      validation.validationConfig.formSelector
+    );
+    validation.clearValidation(form, validation.validationConfig);
+  });
 }
 
 function createNewCard(evt, popupObject) {
+  console.log(popupObject);
   const popupCardName = popupObject.querySelector(
     ".popup__input_type_card-name"
   );
@@ -134,3 +99,70 @@ function createNewCard(evt, popupObject) {
 
   return element;
 }
+
+// --------------------------------------- main ------------------------------------------------
+
+animateModal(newCardPopup);
+animateModal(profileEditPopup);
+animateModal(popupTypeImage);
+
+Promise.all([api.getUserProfile(), api.getCards()]).then((data) => {
+  // 1. update lending info
+  profileData = data[0];
+  profileTitle.textContent = profileData.name;
+  profileDescription.textContent = profileData.about;
+  profileLogo.src = profileData.avatar;
+
+  data[1].forEach((element) => {
+    cardLists.append(
+      card.createCard(
+        element,
+        profileData,
+        cardTemplate,
+        card.likeCard,
+        card.deleteCard,
+        showImagePopup
+      )
+    );
+  });
+  // 2. Add event lstener
+  formElementCard.addEventListener("submit", handleCardFormSubmit);
+  formElementProfile.addEventListener("submit", handleProfileFormSubmit);
+  profileAddButton.addEventListener("click", () => {
+    modal.openModal(newCardPopup);
+  });
+  profileEditButton.addEventListener("click", () => {
+    document.querySelector(".popup__input_type_name").placeholder =
+      profileTitle.textContent;
+    document.querySelector(".popup__input_type_description").placeholder =
+      profileDescription.textContent;
+    modal.openModal(profileEditPopup);
+  });
+});
+
+// cardAddButton.addEventListener("click", () => {
+//   const validationConfig = {
+//     formSelector: ".popup__form",
+//     inputSelector: ".popup__input",
+//     submitButtonSelector: ".popup__button",
+//     inactiveButtonClass: "popup__button_disabled",
+//     inputErrorClass: "form__input_type_error",
+//     errorClass: "form__input-error_active",
+//   };
+//   validation.enableValidation(validationConfig);
+//   modal.openModal(newCardPopup);
+// });
+
+// profileEditButton.addEventListener("click", () => {
+//   validation.enableValidation({
+//     formSelector: ".popup_type_edit",
+//     inputSelector: ".popup__input",
+//     submitButtonSelector: ".popup__button",
+//     inactiveButtonClass: "popup__button_disabled",
+//     inputErrorClass: "form__input_type_error",
+//     errorClass: "form__input-error_active",
+//   });
+//   modal.openModal(popupEditProfile);
+// });
+
+validation.enableValidation(validation.validationConfig);

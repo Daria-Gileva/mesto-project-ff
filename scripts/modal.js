@@ -1,3 +1,5 @@
+import { clearValidation, validationConfig } from "./validation";
+
 export function openModal(popupObject) {
   popupObject.classList.add("popup_is-opened");
 
@@ -24,17 +26,26 @@ export function closeModal() {
 }
 
 function closeByButton(evt) {
+  const openedPopup = document.querySelector(".popup_is-opened");
+  const form = openedPopup.querySelector(validationConfig.formSelector);
+  clearValidation(form, validationConfig);
   closeModal();
 }
 
 function closeByEscape(evt) {
   if (evt.key === "Escape") {
+    const openedPopup = document.querySelector(".popup_is-opened");
+    const form = openedPopup.querySelector(validationConfig.formSelector);
+    clearValidation(form, validationConfig);
     closeModal();
   }
 }
 
 function closeByOverlay(evt) {
   if (evt.currentTarget === evt.target) {
+    const openedPopup = document.querySelector(".popup_is-opened");
+    const form = openedPopup.querySelector(validationConfig.formSelector);
+    clearValidation(form, validationConfig);
     closeModal();
   }
 }

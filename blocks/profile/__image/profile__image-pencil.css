@@ -1,0 +1,10 @@
+.profile__image-pencil {
+  width: 26px;
+  height: 26px;
+  align-self: center;
+  opacity: 0;
+  position: absolute;
+  z-index: 2;
+  margin: 47px;
+  pointer-events: none;
+}

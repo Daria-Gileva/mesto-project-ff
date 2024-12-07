@@ -81,7 +81,7 @@ export function getCards() {
  * @return Обновленные данные пользователя
  */
 export function patchUserAvatar(avatarLink) {
-  return fetch(`${config.baseUrl}/users/me`, {
+  return fetch(`${config.baseUrl}/users/me/avatar`, {
     method: "PATCH",
     headers: config.headers,
     body: JSON.stringify({

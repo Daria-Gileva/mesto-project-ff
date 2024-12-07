@@ -38,7 +38,7 @@ export function createCard(
   cardImage.setAttribute("alt", element.name);
 
   likeButton.addEventListener("click", (event) => {
-    likeCard(event, element._id);
+    likeCard(event, likeCounter, element._id);
   });
 
   cardImage.addEventListener("click", () => {
@@ -48,7 +48,7 @@ export function createCard(
   return cardCopy;
 }
 
-export function likeCard(event, _id) {
+export function likeCard(event, likeCounter, _id) {
   let isLiked = false;
   event.target.classList.forEach((element) => {
     if (element == "card__like-button_is-active") {
@@ -57,13 +57,15 @@ export function likeCard(event, _id) {
     }
   });
   if (isLiked) {
-    api
-      .dislikeCard(_id)
-      .then(event.target.classList.remove("card__like-button_is-active"));
+    api.dislikeCard(_id).then((data) => {
+      event.target.classList.remove("card__like-button_is-active");
+      likeCounter.textContent = data.likes.length;
+    });
   } else {
-    api
-      .likeCard(_id)
-      .then(event.target.classList.add("card__like-button_is-active"));
+    api.likeCard(_id).then((data) => {
+      event.target.classList.add("card__like-button_is-active");
+      likeCounter.textContent = data.likes.length;
+    });
   }
 }
 

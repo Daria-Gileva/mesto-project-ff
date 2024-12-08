@@ -84,19 +84,19 @@ function handleLogoFormSubmit(evt) {
   submitButton.textContent = "Сохранение...";
 
   const avatarLocal = logoInput.value;
-
   api
     .patchUserAvatar(avatarLocal)
     .then((data) => {
       profileData = data;
       profileLogoButton.style.backgroundImage = "url(" + data.avatar + ")";
+
+      modal.closeModal(logoEditPopup);
+      validation.clearValidation(form, validationConfig);
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
-      modal.closeModal(logoEditPopup);
-      validation.clearValidation(form, validationConfig);
       submitButton.textContent = "Сохранить";
     });
 }
@@ -119,13 +119,13 @@ function handleCardFormSubmit(evt) {
         ),
         cardList.firstChild
       );
+      modal.closeModal(newCardPopup);
+      validation.clearValidation(form, validationConfig);
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
-      modal.closeModal(newCardPopup);
-      validation.clearValidation(form, validationConfig);
       submitButton.textContent = "Сохранить";
     });
 }
@@ -152,49 +152,56 @@ animateModal(profileEditPopup);
 animateModal(popupTypeImage);
 animateModal(logoEditPopup);
 
-Promise.all([api.getUserProfile(), api.getCards()]).then((data) => {
-  validation.enableValidation(validationConfig);
-  const [profileDataLocal, cardListLocal] = data;
-  // 1. update lending info
-  profileData = profileDataLocal;
-  profileTitle.textContent = profileData.name;
-  profileDescription.textContent = profileData.about;
-  profileLogoButton.style.backgroundImage = "url(" + profileData.avatar + ")";
+Promise.all([api.getUserProfile(), api.getCards()])
+  .then((data) => {
+    validation.enableValidation(validationConfig);
+    const [profileDataLocal, cardListLocal] = data;
+    // 1. update lending info
+    profileData = profileDataLocal;
+    profileTitle.textContent = profileData.name;
+    profileDescription.textContent = profileData.about;
+    profileLogoButton.style.backgroundImage = "url(" + profileData.avatar + ")";
 
-  cardListLocal.forEach((element) => {
-    cardList.append(
-      card.createCard(
-        element,
-        profileData,
-        cardTemplate,
-        card.likeCard,
-        card.deleteCard,
-        showImagePopup
-      )
-    );
-  });
-  // 2. Add event lstener
-  formElementCard.addEventListener("submit", handleCardFormSubmit);
-  formElementProfile.addEventListener("submit", handleProfileFormSubmit);
-  formElementLogo.addEventListener("submit", handleLogoFormSubmit);
+    cardListLocal.forEach((element) => {
+      cardList.append(
+        card.createCard(
+          element,
+          profileData,
+          cardTemplate,
+          card.likeCard,
+          card.deleteCard,
+          showImagePopup
+        )
+      );
+    });
+    // 2. Add event lstener
+    formElementCard.addEventListener("submit", handleCardFormSubmit);
+    formElementProfile.addEventListener("submit", handleProfileFormSubmit);
+    formElementLogo.addEventListener("submit", handleLogoFormSubmit);
 
-  profileAddButton.addEventListener("click", () => {
-    const form = newCardPopup.querySelector(validationConfig.formSelector);
-    validation.clearValidation(form, validationConfig);
-    modal.openModal(newCardPopup);
-  });
+    profileAddButton.addEventListener("click", () => {
+      const form = newCardPopup.querySelector(validationConfig.formSelector);
+      validation.clearValidation(form, validationConfig);
+      modal.openModal(newCardPopup);
+    });
 
-  profileEditButton.addEventListener("click", () => {
-    nameInput.value = profileData.name;
-    jobInput.value = profileData.about;
-    const form = profileEditPopup.querySelector(validationConfig.formSelector);
-    validation.clearValidation(form, validationConfig);
-    modal.openModal(profileEditPopup);
+    profileEditButton.addEventListener("click", () => {
+      const form = profileEditPopup.querySelector(
+        validationConfig.formSelector
+      );
+      validation.clearValidation(form, validationConfig);
+
+      nameInput.value = profileTitle.textContent;
+      jobInput.value = profileDescription.textContent;
+
+      modal.openModal(profileEditPopup);
+    });
+    profileLogoButton.addEventListener("click", () => {
+      const form = logoEditPopup.querySelector(validationConfig.formSelector);
+      validation.clearValidation(form, validationConfig);
+      modal.openModal(logoEditPopup);
+    });
+  })
+  .catch((err) => {
+    console.log(err);
   });
-  profileLogoButton.addEventListener("click", () => {
-    logoInput.value = profileData.avatar;
-    const form = logoEditPopup.querySelector(validationConfig.formSelector);
-    validation.clearValidation(form, validationConfig);
-    modal.openModal(logoEditPopup);
-  });
-});

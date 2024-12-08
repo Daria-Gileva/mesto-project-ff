@@ -76,7 +76,9 @@ export function likeCard(event, likeCounter, _id) {
 export function deleteCard(cardItem, id) {
   api
     .deleteCard(id)
-    .then(cardItem.remove())
+    .then(() => {
+      cardItem.remove();
+    })
     .catch((err) => {
       console.log(err);
     });

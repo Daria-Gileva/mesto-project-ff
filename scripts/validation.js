@@ -44,8 +44,10 @@ export const toggleButtonState = (
 ) => {
   if (hasInvalidInput(inputList)) {
     buttonElement.classList.add(validationConfig.inactiveButtonClass);
+    buttonElement.disabled = true;
   } else {
     buttonElement.classList.remove(validationConfig.inactiveButtonClass);
+    buttonElement.disabled = false;
   }
 };
 
@@ -71,9 +73,6 @@ export const enableValidation = (validationConfig) => {
     document.querySelectorAll(validationConfig.formSelector)
   );
   formPopups.forEach((form) => {
-    form.addEventListener("submit", (evt) => {
-      evt.preventDefault();
-    });
     setEventListeners(form, validationConfig);
   });
 };
@@ -82,32 +81,13 @@ export const clearValidation = (form, validationConfig) => {
   const inputForms = Array.from(
     form.querySelectorAll(validationConfig.inputSelector)
   );
-  console.log(form);
 
-  const elementForms = Array.from(
-    form.querySelectorAll("." + validationConfig.errorClass)
-  );
-  console.log(elementForms, validationConfig.errorClass);
   inputForms.forEach((inputElement) => {
-    inputElement.classList.remove(validationConfig.inputErrorClass);
+    hideInputError(form, inputElement, validationConfig);
     inputElement.value = "";
   });
-  elementForms.forEach((errorElement) => {
-    errorElement.classList.remove(validationConfig.errorClass);
-    errorElement.textContent = "";
-  });
-
   const submitButton = form.querySelector(
     validationConfig.submitButtonSelector
   );
-  submitButton.classList.add("popup__button_disabled");
-};
-
-export const validationConfig = {
-  formSelector: ".popup__form",
-  inputSelector: ".popup__input",
-  submitButtonSelector: ".popup__button",
-  inactiveButtonClass: "popup__button_disabled",
-  inputErrorClass: "form__input_type_error",
-  errorClass: "form__input-error_active",
+  toggleButtonState(inputForms, submitButton, validationConfig);
 };

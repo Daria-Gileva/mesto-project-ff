@@ -17,7 +17,6 @@ export function createCard(
   deleteButton.style.display = "none";
   const likeButton = cardItem.querySelector(".card__like-button");
 
-  // добавялем кнопку удалить, если карточка наша
   if (element.owner._id == profileData._id) {
     deleteButton.style.display = "flex";
     deleteButton.addEventListener("click", () => {
@@ -49,26 +48,36 @@ export function createCard(
 }
 
 export function likeCard(event, likeCounter, _id) {
-  let isLiked = false;
-  event.target.classList.forEach((element) => {
-    if (element == "card__like-button_is-active") {
-      isLiked = true;
-      return;
-    }
-  });
+  let isLiked = event.target.classList.contains("card__like-button_is-active");
+
   if (isLiked) {
-    api.dislikeCard(_id).then((data) => {
-      event.target.classList.remove("card__like-button_is-active");
-      likeCounter.textContent = data.likes.length;
-    });
+    api
+      .dislikeCard(_id)
+      .then((data) => {
+        event.target.classList.remove("card__like-button_is-active");
+        likeCounter.textContent = data.likes.length;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   } else {
-    api.likeCard(_id).then((data) => {
-      event.target.classList.add("card__like-button_is-active");
-      likeCounter.textContent = data.likes.length;
-    });
+    api
+      .likeCard(_id)
+      .then((data) => {
+        event.target.classList.add("card__like-button_is-active");
+        likeCounter.textContent = data.likes.length;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 }
 
 export function deleteCard(cardItem, id) {
-  api.deleteCard(id).then(cardItem.remove());
+  api
+    .deleteCard(id)
+    .then(cardItem.remove())
+    .catch((err) => {
+      console.log(err);
+    });
 }

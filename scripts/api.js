@@ -6,6 +6,15 @@ const config = {
   },
 };
 
+function getResponseData(res) {
+  if (res.ok) {
+    return res.json();
+  }
+
+  // если ошибка, отклоняем промис
+  return Promise.reject(`Ошибка: ${res.status}`);
+}
+
 /**
  * Получает от сервера профиль пользовтеля по токену
  *
@@ -14,18 +23,9 @@ const config = {
 export function getUserProfile() {
   return fetch(`${config.baseUrl}/users/me`, {
     headers: config.headers,
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
 /**
  * Редактирует профиль пользователя
@@ -40,18 +40,9 @@ export function patchUserProfile(User) {
       name: User.name,
       about: User.about,
     }),
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
 /**
  * Получает актульный массив карточек с сервера
@@ -61,18 +52,9 @@ export function patchUserProfile(User) {
 export function getCards() {
   return fetch(`${config.baseUrl}/cards`, {
     headers: config.headers,
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
 
 /**
@@ -87,18 +69,9 @@ export function patchUserAvatar(avatarLink) {
     body: JSON.stringify({
       avatar: avatarLink,
     }),
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
 
 /**
@@ -115,18 +88,9 @@ export function postCard(Card) {
       name: Card.name,
       link: Card.link,
     }),
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
 
 /**
@@ -138,18 +102,9 @@ export function deleteCard(cardId) {
   return fetch(`${config.baseUrl}/cards/${cardId}`, {
     method: "DELETE",
     headers: config.headers,
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
 
 /**
@@ -162,18 +117,9 @@ export function likeCard(cardId) {
   return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
     method: "PUT",
     headers: config.headers,
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
 
 /**
@@ -186,16 +132,7 @@ export function dislikeCard(cardId) {
   return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
     method: "DELETE",
     headers: config.headers,
-  })
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-
-      // если ошибка, отклоняем промис
-      return Promise.reject(`Ошибка: ${res.status}`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((res) => {
+    return getResponseData(res);
+  });
 }
